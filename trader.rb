@@ -64,17 +64,27 @@ def execute_limit_order
 end
 
 
-execute_limit_order
+# The real stuff
+action = ARGV[0].to_s
 
-while true
-  spot_rate
-  orderbook_stats
-  price_history
-  daily_stats
-  open_order_count
+if action == 'buy'
+  execute_limit_order
+elsif action == 'stats'
 
-  exit 0
+  while true
+    spot_rate
+    orderbook_stats
+    price_history
+    daily_stats
+    open_order_count
 
-  # p "---------------"
-  # sleep 10
+    p "---------------"
+    sleep 10
+  end
+else
+  $stderr.puts
+  $stderr.puts "No action specified. Try 'buy' or 'stats'. e.g.:"
+  $stderr.puts
+  $stderr.puts "    bundle exec ruby trader.rb stats"
+  $stderr.puts
 end
