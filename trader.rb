@@ -49,12 +49,12 @@ def execute_limit_order
   bid_amount = 0.01 # minimum size...
   current_price = spot_rate.price.to_f
   discount = 0.01
-  bid_price = (current_price - discount).round(2) # 10% lower than current price, whatever
+  bid_price = current_price - discount
 
   p "Initiating limit buy order for #{bid_amount} ETH @ $#{bid_price} ..."
   @client.bid(
     bid_amount,
-    bid_price,
+    bid_price.round(2),
     type: "limit",
     time_in_force: "GTC",
     post_only: true # only act as a market maker (no fees)
