@@ -22,8 +22,20 @@ if action == 'buy'
   order = LimitOrder.new(client)
   order.buy!
   puts "Status: #{order.status.inspect}"
+  puts "Waiting, then cancelling..."
   sleep 60
   order.cancel!
+
+elsif action == 'cancel'
+
+  orders = client.orders(status: "open")
+  orders.each do |order|
+    puts "Cancelling #{order.id}..."
+    canceller = LimitOrder.new(client)
+    canceller.order_id = order.id
+    canceller.cancel!
+  end
+  puts "Done"
 
 elsif action == 'stats'
 
@@ -35,6 +47,8 @@ elsif action == 'stats'
     puts
     puts "----------- #{Time.now} -----------"
     puts "Spot Rate is $%.2f" % stats.spot_rate
+    # TODO calculate some basic price movement statistics
+    # 1m mavd
     puts "Order book has #{orderbook[:bids]} open bids and #{orderbook[:asks]} open asks"
     puts "In the past hour, the maximum price movement was $%.2f" % stats.price_history.max
     puts "The highest price in in the past 24 hours was $%.2f" % daily_stats[:high]
@@ -48,11 +62,11 @@ elsif action == 'stats'
 
 elsif action.nil? || action.empty?
 
-  $stderr.puts
-  $stderr.puts "No action specified. Try 'buy' or 'run'. e.g.:"
-  $stderr.puts
+  $stderr.puts ""
+  $stderr.puts "No action specified. Try: buy, run, cancel"
+  $stderr.puts " e.g."
   $stderr.puts "    bundle exec ruby trader.rb run"
-  $stderr.puts
+  $stderr.puts ""
 
 else
 
