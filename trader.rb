@@ -1,90 +1,61 @@
+#!/usr/bin/env ruby
+
 require 'dotenv/load'
 require 'coinbase/exchange'
 require 'pp'
 
-trading_pair = "ETH-USD"
-@client = Coinbase::Exchange::Client.new(ENV['GDAX_API_KEY'], ENV['GDAX_API_SECRET'], ENV['GDAX_PASSPHRASE'], product_id: trading_pair)
+require_relative 'limit_order'
+require_relative 'market_stats'
 
+TRADING_PAIR = "ETH-USD"
 
-def spot_rate
-  @client.last_trade do |resp|
-    p "Spot Rate: $%.2f" % resp.price
-    pp resp
-  end
-end
+# TODO throw error if missing required ENV variables
+client = Coinbase::Exchange::Client.new(
+    ENV['GDAX_API_KEY'], ENV['GDAX_API_SECRET'], ENV['GDAX_PASSPHRASE'],
+    product_id: TRADING_PAIR
+  )
 
-def orderbook_stats
-  @client.orderbook(level: 3)do |resp|
-    p "There are #{resp.bids.count} open bids on the orderbook"
-    p "There are #{resp.asks.count} open asks on the orderbook"
-  end
-end
-
-def price_history
-  @client.price_history(start: Time.now - 60*60, granularity: 60) do |resp|
-    p "In the past hour, the maximum price movement was $%.2f" % resp.map { |candle| candle.high - candle.low }.max
-  end
-end
-
-def daily_stats
-  @client.daily_stats do |resp|
-    p "The highest price in in the past 24 hours was $%.2f" % resp.high
-    p "The lowest price in in the past 24 hours was $%.2f" % resp.low
-  end
-end
-
-def open_order_count
-  @client.orders(status: "open") do |resp|
-    p "You have #{resp.count} open orders."
-    pp resp
-  end
-end
-
-# time_in_force options... https://support.gdax.com/customer/en/portal/articles/2426596-entering-market-limit-stop-orders
-# GTC = Good Til Cancelled (default)
-# IOC = Immediate Or Cancel
-# FOK = Fill Or Kill
-def execute_limit_order
-  # args are [amount, price, *params]
-  bid_amount = 0.01 # minimum size...
-  current_price = spot_rate.price.to_f
-  discount = 0.01
-  bid_price = current_price - discount
-
-  p "Initiating limit buy order for #{bid_amount} ETH @ $#{bid_price} ..."
-  @client.bid(
-    bid_amount,
-    bid_price.round(2),
-    type: "limit",
-    time_in_force: "GTC",
-    post_only: true # only act as a market maker (no fees)
-  ) do |resp|
-    p "Placed order for #{bid_amount} @ #{bid_price} Order ID is #{resp.id}"
-  end
-end
-
-
-# The real stuff
 action = ARGV[0].to_s
 
 if action == 'buy'
-  execute_limit_order
+
+  order = LimitOrder.new(client)
+  order.buy!
+  puts "Status: #{order.status.inspect}"
+  sleep 60
+  order.cancel!
+
 elsif action == 'stats'
 
   while true
-    spot_rate
-    orderbook_stats
-    price_history
-    daily_stats
-    open_order_count
+    stats = MarketStats.new(client)
+    orderbook = stats.orderbook_stats
+    daily_stats = stats.daily_stats
 
-    p "---------------"
-    sleep 10
+    puts
+    puts "----------- #{Time.now} -----------"
+    puts "Spot Rate is $%.2f" % stats.spot_rate
+    puts "Order book has #{orderbook[:bids]} open bids and #{orderbook[:asks]} open asks"
+    puts "In the past hour, the maximum price movement was $%.2f" % stats.price_history.max
+    puts "The highest price in in the past 24 hours was $%.2f" % daily_stats[:high]
+    puts "The lowest price in in the past 24 hours was $%.2f" % daily_stats[:low]
+    puts "You have #{stats.open_order_count} open orders."
+    stats.print_order_stats
+    puts "-------------------------------------------------"
+
+    sleep 5
   end
+
+elsif action.nil? || action.empty?
+
+  $stderr.puts
+  $stderr.puts "No action specified. Try 'buy' or 'run'. e.g.:"
+  $stderr.puts
+  $stderr.puts "    bundle exec ruby trader.rb run"
+  $stderr.puts
+
 else
-  $stderr.puts
-  $stderr.puts "No action specified. Try 'buy' or 'stats'. e.g.:"
-  $stderr.puts
-  $stderr.puts "    bundle exec ruby trader.rb stats"
-  $stderr.puts
+
+  $stderr.puts "Don't understand #{action.inspect}"
+
 end
