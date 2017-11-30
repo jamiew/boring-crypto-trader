@@ -1,5 +1,5 @@
 class LimitOrder
-  attr_accessor :order_id, :client
+  attr_accessor :client, :order_id, :order_bid_price, :order_bid_amount
 
   def initialize(_client)
     self.client = _client
@@ -11,7 +11,11 @@ class LimitOrder
   end
 
   def bid_price
-    current_price - 100
+    current_price - bid_difference
+  end
+
+  def bid_difference
+    100
   end
 
   def current_price
@@ -29,7 +33,10 @@ class LimitOrder
       post_only: true # only act as a market maker (no fees)
     ) { |resp|
       self.order_id = resp.id
-      puts "Placed order for #{bid_amount} @ #{bid_price} Order ID is #{order_id}"
+      self.order_bid_price = bid_price
+      self.order_bid_amount = bid_amount
+      puts "Placed order for #{bid_amount} @ #{bid_price}"
+      puts "Order ID is #{order_id}"
     }
   end
 

@@ -23,7 +23,24 @@ if action == 'buy'
   order.buy!
   puts "Status: #{order.status.inspect}"
   puts "Waiting, then cancelling..."
-  sleep 60
+
+  # Try buying for ~10 minutes before giving up
+  start_time = Time.now
+  (0..100).each do |i|
+    current_price = order.current_price.to_f
+    paid_price = order.order_bid_price.to_f
+    drift = current_price - paid_price
+    puts "##{i}: spot rate is $#{current_price.to_f}  bid is #{paid_price.to_f}  drift is #{drift.round(2)} #{(100 - drift/order.bid_difference*100.0).round(1)}%"
+
+    # If our bid has drifted too far from current price, cancel it and re-bid
+    if drift.abs > order.bid_difference * 1.01
+      puts "too much drift, cancelling and re-bidding"
+      order.cancel!
+      order.buy!
+    end
+
+    sleep 5
+  end
   order.cancel!
 
 elsif action == 'cancel'
@@ -37,7 +54,7 @@ elsif action == 'cancel'
   end
   puts "Done"
 
-elsif action == 'stats'
+elsif action == 'run'
 
   while true
     stats = MarketStats.new(client)
@@ -49,7 +66,7 @@ elsif action == 'stats'
     puts "Spot Rate is $%.2f" % stats.spot_rate
     # TODO calculate some basic price movement statistics
     # 1m mavd
-    puts "Order book has #{orderbook[:bids]} open bids and #{orderbook[:asks]} open asks"
+    # puts "Order book has #{orderbook[:bids]} open bids and #{orderbook[:asks]} open asks"
     puts "In the past hour, the maximum price movement was $%.2f" % stats.price_history.max
     puts "The highest price in in the past 24 hours was $%.2f" % daily_stats[:high]
     puts "The lowest price in in the past 24 hours was $%.2f" % daily_stats[:low]
@@ -57,7 +74,7 @@ elsif action == 'stats'
     stats.print_order_stats
     puts "-------------------------------------------------"
 
-    sleep 5
+    sleep 3
   end
 
 else
