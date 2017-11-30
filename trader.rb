@@ -41,7 +41,9 @@ if action == 'buy'
 
     sleep 5
   end
+
   order.cancel!
+  exit 1
 
 elsif action == 'cancel'
 
@@ -53,6 +55,7 @@ elsif action == 'cancel'
     canceller.cancel!
   end
   puts "Done"
+  exit 0
 
 elsif action == 'run'
 
@@ -76,6 +79,7 @@ elsif action == 'run'
 
     sleep 3
   end
+  exit 0
 
 else
 
@@ -84,5 +88,6 @@ else
   $stderr.puts " e.g."
   $stderr.puts "    bundle exec ruby trader.rb run"
   $stderr.puts ""
+  exit 1
 
 end
