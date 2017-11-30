@@ -24,10 +24,14 @@ Running
 -------
 
 ```
-bundle exec ruby trader.rb buy
+TEST=1 bundle exec ruby trader.rb buy
 ```
 
-Yes I know it's long
+Remove TEST=1 to buy things for real
+
+Good luck
+
+
 
 License
 -------
