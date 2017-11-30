@@ -32,7 +32,7 @@ Yes I know it's long
 License
 -------
 
-Released to the public under an (MIT License)[https://opensource.org/licenses/MIT]
+Released to the public under an [MIT License](https://opensource.org/licenses/MIT)
 
 
 
