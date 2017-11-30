@@ -26,25 +26,28 @@ if action == 'buy'
 
   # Try buying for ~10 minutes before giving up
   start_time = Time.now
-  (0..100).each do |i|
+  max_attempts = 200
+  sleep_time = 2
+  puts "Going to try buying #{max_attempts} times..."
+  (0..max_attempts).each do |i|
     current_price = order.current_price.to_f
     paid_price = order.order_bid_price.to_f
     drift = current_price - paid_price
-    puts "##{i}: spot rate is $#{current_price.to_f}  bid is #{paid_price.to_f}  drift is #{drift.round(2)} #{(100 - drift/order.bid_difference*100.0).round(1)}%"
+    puts "##{i}: Spot rate is $#{current_price.to_f}   Bid is #{paid_price.to_f}   Drift is #{drift.round(2)} (#{(100 - drift/order.bid_difference*100.0).round(1)}%)    Status=#{order.status}"
 
     # If our bid has drifted too far from current price, cancel it and re-bid
-    if drift.abs > order.bid_difference * 1.01
-      puts "too much drift, cancelling and re-bidding"
+    if drift.abs > order.bid_difference * 1.1
+      puts "Too much drift, cancelling and re-bidding"
       order.cancel!
       order.buy!
     end
 
-    if order.status == "filled"
+    if order.status == "done"
       puts "Order filled! Nice job!"
       exit 0
     end
 
-    sleep 5
+    sleep sleep_time
   end
 
   order.cancel!
@@ -53,6 +56,7 @@ if action == 'buy'
 elsif action == 'cancel'
 
   orders = client.orders(status: "open")
+  puts "Cancelling #{orders.length} orders..."
   orders.each do |order|
     puts "Cancelling #{order.id}..."
     canceller = LimitOrder.new(client)
