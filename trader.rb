@@ -33,7 +33,7 @@ if action == 'buy'
     current_price = order.current_price.to_f
     paid_price = order.order_bid_price.to_f
     drift = current_price - paid_price
-    puts "##{i}: Spot rate is $#{current_price.to_f}   Bid is #{paid_price.to_f}   Drift is #{drift.round(2)} (#{(100 - drift/order.bid_difference*100.0).round(1)}%)    Status=#{order.status}"
+    puts "##{i}: Status=#{order.status}   Bid is #{paid_price.to_f}   Spot rate is $#{current_price.to_f}   Drift is #{drift.round(2)} (#{(100 - drift/order.bid_difference*100.0).round(1)}%)"
 
     # If our bid has drifted too far from current price, cancel it and re-bid
     if drift.abs > order.bid_difference * 1.1
