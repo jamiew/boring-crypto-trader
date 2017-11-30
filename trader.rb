@@ -21,13 +21,12 @@ if action == 'buy'
 
   order = LimitOrder.new(client)
   order.buy!
-  puts "Status: #{order.status.inspect}"
-  puts "Waiting, then cancelling..."
 
   # Try buying for ~10 minutes before giving up
   start_time = Time.now
   max_attempts = 200
-  sleep_time = 2
+  sleep_time = 5
+
   puts "Going to try buying #{max_attempts} times..."
   (0..max_attempts).each do |i|
     current_price = order.current_price.to_f
@@ -36,7 +35,7 @@ if action == 'buy'
     puts "##{i}: Status=#{order.status}   Bid is #{paid_price.to_f}   Spot rate is $#{current_price.to_f}   Drift is #{drift.round(2)} (#{(100 - drift/order.bid_difference*100.0).round(1)}%)"
 
     # If our bid has drifted too far from current price, cancel it and re-bid
-    if drift.abs > order.bid_difference * 1.1
+    if drift.abs > (order.bid_difference * 1.5)
       puts "Too much drift, cancelling and re-bidding"
       order.cancel!
       order.buy!
@@ -44,11 +43,12 @@ if action == 'buy'
 
     if order.status == 'done'
       puts "Order filled! Nice job!"
+      puts "Took #{(Time.now - start_time).round} seconds"
       exit 0
     elsif order.status == 'open'
       # Just continue
     else
-      $stderr.puts "Unknown order status '#{order.status}, halting"
+      $stderr.puts "Unknown order status #{order.status.inspect}, halting"
       order.cancel!
       exit 1
     end

@@ -15,7 +15,7 @@ class LimitOrder
   end
 
   def bid_difference
-    ENV['TEST'] && 100 || 1
+    ENV['TEST'] && 100 || 0.1
   end
 
   def current_price
