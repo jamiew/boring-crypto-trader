@@ -60,16 +60,12 @@ elsif action == 'stats'
     sleep 5
   end
 
-elsif action.nil? || action.empty?
+else
 
   $stderr.puts ""
-  $stderr.puts "No action specified. Try: buy, run, cancel"
+  $stderr.puts "No action specified. Try: run, buy, cancel"
   $stderr.puts " e.g."
   $stderr.puts "    bundle exec ruby trader.rb run"
   $stderr.puts ""
-
-else
-
-  $stderr.puts "Don't understand #{action.inspect}"
 
 end
