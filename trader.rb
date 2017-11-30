@@ -39,6 +39,11 @@ if action == 'buy'
       order.buy!
     end
 
+    if order.status == "filled"
+      puts "Order filled! Nice job!"
+      exit 0
+    end
+
     sleep 5
   end
 
