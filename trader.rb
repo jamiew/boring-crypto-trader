@@ -42,9 +42,15 @@ if action == 'buy'
       order.buy!
     end
 
-    if order.status == "done"
+    if order.status == 'done'
       puts "Order filled! Nice job!"
       exit 0
+    elsif order.status == 'open'
+      # Just continue
+    else
+      $stderr.puts "Unknown order status '#{order.status}, halting"
+      order.cancel!
+      exit 1
     end
 
     sleep sleep_time
