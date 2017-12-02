@@ -34,19 +34,21 @@ if action == 'buy'
     drift = current_price - paid_price
     puts "##{i}: Status=#{order.status}   Bid is #{paid_price.to_f}   Spot rate is $#{current_price.to_f}   Drift is #{drift.round(2)} (#{(100 - drift/order.bid_difference*100.0).round(1)}%)"
 
-    # If our bid has drifted too far from current price, cancel it and re-bid
-    if drift.abs > (order.bid_difference * 1.5)
-      puts "Too much drift, cancelling and re-bidding"
-      order.cancel!
-      order.buy!
-    end
-
     if order.status == 'done'
       puts "Order filled! Nice job!"
       puts "Took #{(Time.now - start_time).round} seconds"
       exit 0
-    elsif order.status == 'open'
-      # Just continue
+    end
+
+    if order.status == 'open'
+
+      # If our bid has drifted too far from current price, cancel it and re-bid
+      if drift.abs > (order.bid_difference * 1.5)
+        puts "Too much drift, cancelling and re-bidding"
+        order.cancel!
+        order.buy!
+      end
+
     else
       $stderr.puts "Unknown order status #{order.status.inspect}, halting"
       order.cancel!
