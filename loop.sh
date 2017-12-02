@@ -6,6 +6,6 @@
 time=$((3 * 60 * 60))
 
 while [ 1 ]; do
-  be ruby trader.rb buy
+  bundle exec ruby trader.rb buy
   sleep $time
 done
