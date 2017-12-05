@@ -1,11 +1,10 @@
 class LimitOrder
-  attr_accessor :client, :amount, :currency,
+  attr_accessor :client, :amount,
                 :order_id, :order_bid_price, :order_bid_amount
 
-  def initialize(_client, _amount, _currency)
+  def initialize(_client, _amount)
     self.client = _client
     self.amount = _amount
-    self.currency = _currency
   end
 
   def bid_price
@@ -28,11 +27,10 @@ class LimitOrder
   end
 
   def buy!
-    puts "Initiating limit buy order for #{amount} #{currency} @ $#{bid_price} ..."
+    puts "Initiating limit buy order for #{amount} #{TRADING_PAIR} @ $#{bid_price} ..."
     client.bid(
       amount,
       bid_price.round(2),
-      product_id: "#{currency}-USD",
       type: "limit",
       time_in_force: "GTC",
       post_only: true # only act as a market maker (no fees)
@@ -40,7 +38,7 @@ class LimitOrder
       self.order_id = resp.id
       self.order_bid_price = bid_price
       self.order_bid_amount = amount
-      puts "Placed order for #{amount} @ #{bid_price}"
+      puts "Placed order for #{amount} #{TRADING_PAIR} @ #{bid_price}"
       puts "Order ID is #{order_id}"
     }
   end

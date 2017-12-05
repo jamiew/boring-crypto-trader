@@ -11,18 +11,25 @@ action = ARGV[0].to_s
 amount = ARGV[1].to_f
 currency = ARGV[2].to_s
 
+pp ARGV
+
 if action.nil? || amount.nil? || currency.nil?
   $stderr.puts "Missing arguments: `action amount currency`"
   $stderr.puts "e.g. 'buy 0.01 ETH'"
   exit 1
 end
 
+TRADING_PAIR = "#{currency}-USD" # not my favorite thing
+
 def client
-  @client ||= Coinbase::Exchange::Client.new(ENV['GDAX_API_KEY'], ENV['GDAX_API_SECRET'], ENV['GDAX_PASSPHRASE'])
+  @client ||= Coinbase::Exchange::Client.new(
+    ENV['GDAX_API_KEY'], ENV['GDAX_API_SECRET'], ENV['GDAX_PASSPHRASE'],
+    product_id: TRADING_PAIR
+  )
 end
 
-def buy(amount, currency)
-  order = LimitOrder.new(client, amount, currency)
+def buy(amount)
+  order = LimitOrder.new(client, amount)
   order.buy!
 
   # Try buying for ~10 minutes before giving up
@@ -72,17 +79,14 @@ def cancel_all_orders
   puts "Cancelling #{orders.length} orders..."
   orders.each do |order|
     puts "Cancelling #{order.id}..."
-    canceller = LimitOrder.new(client)
-    canceller.order_id = order.id
-    canceller.cancel!
+    client.cancel(order.id)
   end
-  puts "Done"
-  exit 0
 end
 
 # main()
 if action == 'buy'
-  buy(amount, currency)
+  cancel_all_orders
+  buy(amount)
 elsif action == 'cancel'
   cancel_all_orders
 else
