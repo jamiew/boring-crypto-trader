@@ -45,14 +45,15 @@ def buy(amount, currency)
     end
 
     if order.status == 'open'
-
       # If our bid has drifted too far from current price, cancel it and re-bid
       if drift > order.drift_threshold
-        puts "Too much drift (threshold=$#{order.drift_threshold}), cancelling and re-bidding"
+        puts "Too much drift (threshold=#{order.drift_threshold}), cancelling and re-bidding"
         order.cancel!
         order.buy!
       end
-
+    elsif order.status == 'rejected'
+      # Our bid was probably higher than the spot price, try again
+      order.buy!
     else
       $stderr.puts "Unknown order status #{order.status.inspect}, halting"
       order.cancel!
