@@ -24,7 +24,7 @@ Running
 -------
 
 ```
-TEST=1 bundle exec ruby trader.rb buy
+TEST=1 bundle exec ruby trader.rb buy 0.01 ETH
 ```
 
 Remove TEST=1 to buy things for real

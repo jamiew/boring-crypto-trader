@@ -7,24 +7,27 @@ require 'pp'
 require_relative 'limit_order'
 require_relative 'market_stats'
 
-TRADING_PAIR = "ETH-USD"
-
-# TODO throw error if missing required ENV variables
-client = Coinbase::Exchange::Client.new(
-    ENV['GDAX_API_KEY'], ENV['GDAX_API_SECRET'], ENV['GDAX_PASSPHRASE'],
-    product_id: TRADING_PAIR
-  )
-
 action = ARGV[0].to_s
+amount = ARGV[1].to_f
+currency = ARGV[2].to_s
 
-if action == 'buy'
+if action.nil? || amount.nil? || currency.nil?
+  $stderr.puts "Missing arguments: `action amount currency`"
+  $stderr.puts "e.g. 'buy 0.01 ETH'"
+  exit 1
+end
 
-  order = LimitOrder.new(client)
+def client
+  @client ||= Coinbase::Exchange::Client.new(ENV['GDAX_API_KEY'], ENV['GDAX_API_SECRET'], ENV['GDAX_PASSPHRASE'])
+end
+
+def buy(amount, currency)
+  order = LimitOrder.new(client, amount, currency)
   order.buy!
 
   # Try buying for ~10 minutes before giving up
   start_time = Time.now
-  max_attempts = 200
+  max_attempts = 100
   sleep_time = 5
 
   puts "Going to try buying #{max_attempts} times..."
@@ -32,7 +35,8 @@ if action == 'buy'
     current_price = order.current_price.to_f
     paid_price = order.order_bid_price.to_f
     drift = current_price - paid_price
-    puts "##{i}: Status=#{order.status}   Bid is #{paid_price.to_f}   Spot rate is $#{current_price.to_f}   Drift is #{drift.round(2)} (#{(100 - drift/order.bid_difference*100.0).round(1)}%)"
+    drift_percentage = drift.abs / paid_price
+    puts "##{i}: Status=#{order.status}   Bid is #{paid_price.to_f}   Spot rate is $#{current_price.to_f}   Drift is #{drift.round(2)} (#{(drift_percentage * 100.0).round(2)}%)"
 
     if order.status == 'done'
       puts "Order filled! Nice job!"
@@ -43,8 +47,8 @@ if action == 'buy'
     if order.status == 'open'
 
       # If our bid has drifted too far from current price, cancel it and re-bid
-      if drift.abs > (order.bid_difference * 1.5)
-        puts "Too much drift, cancelling and re-bidding"
+      if drift > order.drift_threshold
+        puts "Too much drift (threshold=$#{order.drift_threshold}), cancelling and re-bidding"
         order.cancel!
         order.buy!
       end
@@ -60,9 +64,9 @@ if action == 'buy'
 
   order.cancel!
   exit 1
+end
 
-elsif action == 'cancel'
-
+def cancel_all_orders
   orders = client.orders(status: "open")
   puts "Cancelling #{orders.length} orders..."
   orders.each do |order|
@@ -73,38 +77,18 @@ elsif action == 'cancel'
   end
   puts "Done"
   exit 0
+end
 
-elsif action == 'run'
-
-  while true
-    stats = MarketStats.new(client)
-    orderbook = stats.orderbook_stats
-    daily_stats = stats.daily_stats
-
-    puts
-    puts "----------- #{Time.now} -----------"
-    puts "Spot Rate is $%.2f" % stats.spot_rate
-    # TODO calculate some basic price movement statistics
-    # 1m mavd
-    # puts "Order book has #{orderbook[:bids]} open bids and #{orderbook[:asks]} open asks"
-    puts "In the past hour, the maximum price movement was $%.2f" % stats.price_history.max
-    puts "The highest price in in the past 24 hours was $%.2f" % daily_stats[:high]
-    puts "The lowest price in in the past 24 hours was $%.2f" % daily_stats[:low]
-    puts "You have #{stats.open_order_count} open orders."
-    stats.print_order_stats
-    puts "-------------------------------------------------"
-
-    sleep 3
-  end
-  exit 0
-
+# main()
+if action == 'buy'
+  buy(amount, currency)
+elsif action == 'cancel'
+  cancel_all_orders
 else
-
   $stderr.puts ""
-  $stderr.puts "No action specified. Try: run, buy, cancel"
+  $stderr.puts "No action specified. Try: buy, cancel"
   $stderr.puts " e.g."
-  $stderr.puts "    bundle exec ruby trader.rb run"
+  $stderr.puts "    bundle exec ruby trader.rb buy 0.01 ETH"
   $stderr.puts ""
   exit 1
-
 end
