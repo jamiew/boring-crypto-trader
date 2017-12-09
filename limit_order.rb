@@ -39,8 +39,7 @@ class LimitOrder
       self.order_id = resp.id
       self.order_bid_price = bid_price
       self.order_bid_amount = amount
-      puts "Successfully placed order for #{amount} #{TRADING_PAIR}"
-      puts "Order ID is #{order_id}"
+      puts "Success. Order ID is #{order_id}"
     }
   end
 
