@@ -38,7 +38,7 @@ def buy(amount)
   puts "Monitoring bid for #{max_attempts} cycles..."
   (0..max_attempts).each do |i|
     sleep sleep_time
-    adjust_buy_order_if_necessary(order, i)
+    adjust_buy_order_if_necessary(order, i, start_time)
   end
 
   # If we've gotten this far, just give up
@@ -50,7 +50,7 @@ rescue Coinbase::Exchange::RateLimitError
   retry
 end
 
-def adjust_buy_order_if_necessary(order, i)
+def adjust_buy_order_if_necessary(order, i, start_time)
   current_price = order.current_price.to_f
   paid_price = order.order_bid_price.to_f
   drift = current_price - paid_price
