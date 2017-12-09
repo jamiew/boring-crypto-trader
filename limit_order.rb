@@ -18,7 +18,7 @@ class LimitOrder
 
   # In USD
   def drift_threshold
-    1
+    ENV['TEST'] && 102 || 1
   end
 
   def current_price
@@ -27,6 +27,7 @@ class LimitOrder
   end
 
   def buy!
+    puts "-----------"
     puts "Initiating limit buy order for #{amount} #{TRADING_PAIR} @ $#{bid_price} ..."
     client.bid(
       amount,
@@ -38,7 +39,7 @@ class LimitOrder
       self.order_id = resp.id
       self.order_bid_price = bid_price
       self.order_bid_amount = amount
-      puts "Placed order for #{amount} #{TRADING_PAIR} @ #{bid_price}"
+      puts "Placed order for #{amount} #{TRADING_PAIR} @ $#{bid_price} ($#{"%.2f" % (amount * bid_price)})"
       puts "Order ID is #{order_id}"
     }
   end

@@ -11,8 +11,6 @@ action = ARGV[0].to_s
 amount = ARGV[1].to_f
 currency = ARGV[2].to_s
 
-pp ARGV
-
 if action.nil? || amount.nil? || currency.nil?
   $stderr.puts "Missing arguments: `action amount currency`"
   $stderr.puts "e.g. 'buy 0.01 ETH'"
@@ -32,47 +30,60 @@ def buy(amount)
   order = LimitOrder.new(client, amount)
   order.buy!
 
-  # Try buying for ~10 minutes before giving up
   start_time = Time.now
   max_attempts = 100
   sleep_time = 5
 
-  puts "Going to try buying #{max_attempts} times..."
+  # Try buying for ~10 minutes before giving up
+  puts "Monitoring bid for #{max_attempts} cycles..."
   (0..max_attempts).each do |i|
-    current_price = order.current_price.to_f
-    paid_price = order.order_bid_price.to_f
-    drift = current_price - paid_price
-    drift_percentage = drift.abs / paid_price
-    puts "##{i}: Status=#{order.status}   Bid is #{paid_price.to_f}   Spot rate is $#{current_price.to_f}   Drift is #{drift.round(2)} (#{(drift_percentage * 100.0).round(2)}%)"
-
-    if order.status == 'done'
-      puts "Order filled! Nice job!"
-      puts "Took #{(Time.now - start_time).round} seconds"
-      exit 0
-    end
-
-    if order.status == 'open'
-      # If our bid has drifted too far from current price, cancel it and re-bid
-      if drift > order.drift_threshold
-        puts "Too much drift (threshold=#{order.drift_threshold}), cancelling and re-bidding"
-        order.cancel!
-        order.buy!
-      end
-    elsif order.status == 'rejected'
-      # Our bid was probably higher than the spot price, try again
-      order.buy!
-    else
-      $stderr.puts "Unknown order status #{order.status.inspect}, halting"
-      order.cancel!
-      exit 1
-    end
-
     sleep sleep_time
+    adjust_buy_order_if_necessary(order, i)
   end
 
+  # If we've gotten this far, just give up
   order.cancel!
   exit 1
+rescue Coinbase::Exchange::RateLimitError
+  puts "Warning, rate limited on initial buy. Sleeping 5 and retrying..."
+  sleep 5
+  retry
 end
+
+def adjust_buy_order_if_necessary(order, i)
+  current_price = order.current_price.to_f
+  paid_price = order.order_bid_price.to_f
+  drift = current_price - paid_price
+  drift_percentage = drift.abs / paid_price
+  puts "##{i}: Status=#{order.status}   Bid is #{paid_price.to_f}   Spot rate is $#{current_price.to_f}   Drift is #{drift.round(2)} (#{(drift_percentage * 100.0).round(2)}%)"
+
+  if order.status == 'done'
+    puts "Order filled! Nice job!"
+    puts "Took #{(Time.now - start_time).round} seconds"
+    exit 0
+  end
+
+  if order.status == 'open'
+    # If our bid has drifted too far from current price, cancel it and re-bid
+    if drift > order.drift_threshold
+      puts "Too much drift (threshold=#{order.drift_threshold}), cancelling and re-bidding"
+      order.cancel!
+      order.buy!
+    end
+  elsif order.status == 'rejected'
+    # Our bid was probably higher than the spot price, try again
+    order.buy!
+  else
+    $stderr.puts "Unknown order status #{order.status.inspect}, halting"
+    order.cancel!
+    exit 1
+  end
+
+rescue Coinbase::Exchange::RateLimitError
+  puts "Warning, rate limited. Pausing..."
+  sleep 5
+end
+
 
 def cancel_all_orders
   orders = client.orders(status: "open")
@@ -86,7 +97,12 @@ end
 # main()
 if action == 'buy'
   cancel_all_orders
-  buy(amount)
+  begin
+    buy(amount)
+  rescue Interrupt
+    cancel_all_orders
+    raise
+  end
 elsif action == 'cancel'
   cancel_all_orders
 else
