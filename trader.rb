@@ -31,8 +31,8 @@ def buy(amount)
   order.buy!
 
   start_time = Time.now
-  max_attempts = 100
-  sleep_time = 5
+  max_attempts = 200
+  sleep_time = 10
 
   # Try buying for ~10 minutes before giving up
   puts "Monitoring bid for #{max_attempts} cycles..."
