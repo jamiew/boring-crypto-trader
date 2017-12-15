@@ -20,6 +20,11 @@ You'll need recent-ish versions of ruby and bundler
 bundle install
 ```
 
+Register a [GDAX API key](https://www.gdax.com/settings/api) -- just need View & Trade permissions
+
+Then copy `.env.sample` to `.env` and put in your API keys
+
+
 Running
 -------
 
