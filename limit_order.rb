@@ -4,7 +4,12 @@ class LimitOrder
 
   def initialize(_client, _amount)
     self.client = _client
-    self.amount = _amount
+
+    if _amount =~ /USD/
+      self.amount = ("%.5f" % (_amount.gsub('USD','').to_f / current_price)).to_f
+    else
+      self.amount = _amount.to_f
+    end
   end
 
   def bid_price
@@ -26,9 +31,13 @@ class LimitOrder
     stats.spot_rate.to_f
   end
 
+  def usd_purchase_price
+    "%.2f" % (amount * bid_price)
+  end
+
   def buy!
     puts "-----------"
-    puts "Initiating limit buy order for #{amount} #{TRADING_PAIR} @ $#{bid_price} ($#{"%.2f" % (amount * bid_price)}) ..."
+    puts "Initiating limit buy order for #{amount} #{TRADING_PAIR} @ $#{bid_price} ($#{usd_purchase_price}) ..."
     client.bid(
       amount,
       bid_price.round(2),

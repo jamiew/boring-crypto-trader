@@ -8,7 +8,7 @@ require_relative 'limit_order'
 require_relative 'market_stats'
 
 action = ARGV[0].to_s
-amount = ARGV[1].to_f
+amount = ARGV[1].to_s
 currency = ARGV[2].to_s
 
 if action.nil? || amount.nil? || currency.nil?

@@ -32,6 +32,12 @@ Running
 TEST=1 bundle exec ruby trader.rb buy 0.01 ETH
 ```
 
+You can specify how much you want to pay instead:
+
+```
+TEST=1 bundle exec ruby trader.rb buy 25USD ETH
+```
+
 Remove TEST=1 to buy things for real
 
 Good luck
@@ -42,7 +48,3 @@ License
 -------
 
 Released to the public under an [MIT License](https://opensource.org/licenses/MIT)
-
-
-
-
