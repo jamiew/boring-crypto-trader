@@ -41,7 +41,7 @@ To buy $5 worth of bitcoin:
 TEST=1 bundle exec ruby trader.rb buy 5USD BTC
 ```
 
-(using "$5" is clumsy because it's a shell variable, but "\$5" also works)
+(using "$5" is clumsy because it's a shell variable, but "\\$5" works too)
 
 Remove TEST=1 to buy things for real
 
