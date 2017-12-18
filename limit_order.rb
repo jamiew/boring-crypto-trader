@@ -5,8 +5,12 @@ class LimitOrder
   def initialize(_client, _amount)
     self.client = _client
 
-    if _amount =~ /USD/
-      self.amount = ("%.5f" % (_amount.gsub('USD','').to_f / current_price)).to_f
+    pp _amount
+    if _amount =~ /^\$/ || _amount =~ /USD$/
+      dollars = _amount.gsub(/^\$/,'').gsub(/USD$/,'').to_f
+      self.amount = ("%.5f" % (dollars / current_price)).to_f
+      puts "Buying $#{dollars} => #{amount} #{BASE_PAIR}"
+      puts "TEST MODE" if test?
     else
       self.amount = _amount.to_f
     end
@@ -42,7 +46,6 @@ class LimitOrder
   def buy!
     puts "-----------"
     puts "Initiating limit buy order for #{amount} #{TRADING_PAIR} @ $#{bid_price} ($#{usd_purchase_price}) ..."
-    puts "TEST MODE" if test?
     client.bid(
       amount,
       bid_price.round(2),
