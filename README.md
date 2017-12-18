@@ -1,11 +1,11 @@
 boring-crypto-trader
 --------------------
 
-Use limit orders to buy without fees on Coinbase/GDAX. Handy for
+Use limit orders to buy without fees on Coinbase/GDAX
 
-This script makes it easier to frequently buy small amounts of cryptos without fees (Bitcoin, Ethereum, Litecoin, etc)
+This script makes it easier to frequently buy small amounts of cryptos (Bitcoin, Ethereum, Litecoin, etc)
+so you can [dollar cost average](https://www.bogleheads.org/wiki/Dollar_cost_averaging) your purchases.
 
-Good for [dollar cost averaging](https://www.bogleheads.org/wiki/Dollar_cost_averaging) your purchases.
 Doesn't try to be be clever about timing, just buys on a regular schedule throughout the day.
 
 <img src="https://media.giphy.com/media/DG9o18mHjsa1G/giphy.gif" width="30%"> <img src="https://media.giphy.com/media/K5Yn9JCXcrXr2/giphy.gif" width="30%"> <img src="https://media.giphy.com/media/1WKmZA1CYSclG/giphy.gif" width="15%">
