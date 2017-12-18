@@ -12,18 +12,22 @@ class LimitOrder
     end
   end
 
+  def test?
+    ENV['TEST']
+  end
+
   def bid_price
     current_price - bid_discount
   end
 
   # In USD
   def bid_discount
-    ENV['TEST'] && 100 || 0.1
+    test? && 100 || 0.1
   end
 
   # In USD
   def drift_threshold
-    ENV['TEST'] && 102 || 1
+    test? && 102 || 1
   end
 
   def current_price
@@ -38,6 +42,7 @@ class LimitOrder
   def buy!
     puts "-----------"
     puts "Initiating limit buy order for #{amount} #{TRADING_PAIR} @ $#{bid_price} ($#{usd_purchase_price}) ..."
+    puts "TEST MODE" if test?
     client.bid(
       amount,
       bid_price.round(2),
