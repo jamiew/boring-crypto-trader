@@ -13,11 +13,17 @@ currency = ARGV[2].to_s
 
 if action.nil? || amount.nil? || currency.nil?
   $stderr.puts "Missing arguments: `action amount currency`"
-  $stderr.puts "e.g. 'buy 0.01 ETH'"
+  $stderr.puts "e.g. "
+  $stderr.ptus "   buy 0.01 ETH"
+  $stderr.puts "or"
+  $stderr.puts "   buy \$5 BTC"
   exit 1
 end
 
-TRADING_PAIR = "#{currency}-USD" # not my favorite thing
+# Not my favorite way of doing this
+BASE_PAIR = currency
+QUOTE_PAIR = "USD"
+TRADING_PAIR = "#{BASE_PAIR}-#{QUOTE_PAIR}"
 
 def client
   @client ||= Coinbase::Exchange::Client.new(
@@ -100,6 +106,7 @@ if action == 'buy'
   begin
     buy(amount)
   rescue Interrupt
+    # Catch ctrl-c and get rid of any spare orders
     cancel_all_orders
     raise
   end
