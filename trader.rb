@@ -64,12 +64,12 @@ def adjust_buy_order_if_necessary(order, i, start_time)
   puts "##{i}: Status=#{order.status}   Bid is #{paid_price.to_f}   Spot rate is $#{current_price.to_f}   Drift is #{drift.round(2)} (#{(drift_percentage * 100.0).round(2)}%)"
 
   if order.status == 'done'
-    puts "Order filled! Nice job!"
+    puts "********** Order filled! Nice job! ********"
     puts "Took #{(Time.now - start_time).round} seconds"
+    puts "*********************************************"
+    puts
     exit 0
-  end
-
-  if order.status == 'open'
+  elsif order.status == 'open'
     # If our bid has drifted too far from current price, cancel it and re-bid
     if drift > order.drift_threshold
       puts "Too much drift (threshold=#{order.drift_threshold}), cancelling and re-bidding"
