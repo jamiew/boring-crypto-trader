@@ -6,7 +6,8 @@
 time=$((3 * 60 * 60))
 
 while [ 1 ]; do
-  bundle exec ruby trader.rb buy 0.0003 BTC
-  bundle exec ruby trader.rb buy 0.01 ETH
+  bundle exec ruby trader.rb buy 5USD BTC
+  bundle exec ruby trader.rb buy 5USD ETH
+  bundle exec ruby trader.rb buy 5USD BCH
   sleep $time
 done
