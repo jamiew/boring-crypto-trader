@@ -20,6 +20,14 @@ def aggregate_stats(for_fills)
 
 end
 
+# Breaks rate limit...
+# pp client.trade_history
+
+# start_time = Date.parse('2017-12-01')
+# end_time = Date.parse('2017-12-28')
+# granularities {60, 300, 900, 3600, 21600, 86400}
+# pp client.price_history(granularity: 86400, start: start_time, end: end_time)
+# exit
 
 date = '2017-12-26'
 
