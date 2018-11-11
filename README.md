@@ -46,7 +46,7 @@ TEST=1 bundle exec ruby trader.rb buy 5USD BTC
 Remove TEST=1 to buy things for real
 
 Please note that test mode just submits a very low bid (-$100) instead of the usual -$0.01.
-That means there's a non-zero it might really result in you buying something.
+That means there's a non-zero chance it might really result in you buying something.
 
 Good luck
 
