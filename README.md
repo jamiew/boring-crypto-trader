@@ -1,3 +1,6 @@
+**ARCHIVED:** Coinbase Pro (fka GDAX) no longer does fee-free limit orders, so this strategy is not as smart as it was back in 2017. But the
+code is here if you'd like to build on top of it.
+
 boring-crypto-trader
 --------------------
 
